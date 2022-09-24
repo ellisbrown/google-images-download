@@ -11,6 +11,10 @@ Documentation
 * `Input arguments <https://google-images-download.readthedocs.io/en/latest/arguments.html>`__
 * `Examples and Code Samples <https://google-images-download.readthedocs.io/en/latest/examples.html#>`__
 
+Chromium Ubuntu
+---------------
+for headless installation instructions, see: https://gist.github.com/LoganGray/8aa2de1a079222d9e2ba39ecd207684e
+
 
 Disclaimer
 ==========
