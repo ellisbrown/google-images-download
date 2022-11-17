@@ -1009,14 +1009,10 @@ def download_executor(arguments):
 
                 # dumps into a json file
                 if arguments['extract_metadata']:
-                    try:
-                        if not os.path.exists("logs"):
-                            os.makedirs("logs")
-                    except OSError as e:
-                        print(e)
-                    json_file = open("logs/" + search_keyword[i] + ".json", "w")
-                    json.dump(items, json_file, indent=4, sort_keys=True)
-                    json_file.close()
+                    datatimestr = time.strftime("%Y.%m.%d_%H.%M.%S")
+                    metadata_path = os.path.join(main_directory, dir_name, f"{search_keyword[i]}_{datatimestr}.json")
+                    with open(metadata_path, 'w') as f:
+                        json.dump(items, f, indent=4, sort_keys=True)
 
                 # Related images
                 if arguments['related_images']:
@@ -1080,6 +1076,8 @@ def user_input():
                             required=False)
         parser.add_argument('-i', '--image_directory', help='download images in a specific sub-directory', type=str,
                             required=False)
+        parser.add_argument('-ld', '--log_directory', help='download logs in a specific directory', type=str,
+                            default="logs", required=False)
         parser.add_argument('-n', '--no_directory', default=False,
                             help='download images in the main directory but no sub-directory', action="store_true")
         parser.add_argument('-d', '--delay', help='delay in seconds to wait between downloading two images', type=int,

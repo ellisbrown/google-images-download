@@ -175,7 +175,7 @@ Link to `Documentation Homepage <https://google-images-download.readthedocs.io/e
 +-------------------+-------------+-------------------------------------------------------------------------------------------------------------------------------+
 | extract_metadata  | e           | This option allows you to save metadata of all the downloaded images in a JSON file.                                          |
 |                   |             |                                                                                                                               |
-|                   |             | This file can be found in the ``logs/`` directory. The name of the file would be same as the keyword name                     |
+|                   |             | This file can be found in the same directory as the downloaded images.                                                        |
 |                   |             |                                                                                                                               |
 |                   |             | This argument does not take any value. Just add '--extract_metadata' or '-e' in your query.                                   |
 +-------------------+-------------+-------------------------------------------------------------------------------------------------------------------------------+
