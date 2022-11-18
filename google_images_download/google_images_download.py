@@ -1009,8 +1009,8 @@ def download_executor(arguments):
 
                 # dumps into a json file
                 if arguments['extract_metadata']:
-                    datatimestr = time.strftime("%Y.%m.%d_%H.%M.%S")
-                    metadata_path = os.path.join(main_directory, dir_name, f"{search_keyword[i]}_{datatimestr}.json")
+                    datetimestr = time.strftime("%Y.%m.%d_%H.%M.%S")
+                    metadata_path = os.path.join(main_directory, dir_name, f"{search_keyword[i]}_{datetimestr}.json")
                     with open(metadata_path, 'w') as f:
                         json.dump(items, f, indent=4, sort_keys=True)
 
