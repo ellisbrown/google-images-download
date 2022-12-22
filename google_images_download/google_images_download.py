@@ -75,6 +75,8 @@ def _image_objects_from_pack(data):
     grid = image_data[56][-1][0][-1][-1][0]
     image_objects = []
     for item in grid:
+        if len(item) > 1:
+            continue  # skip related images
         obj = list(item[0][0].values())[0]
         # ads and carousels will be empty
         if not obj or not obj[1]:
@@ -278,9 +280,12 @@ def get_all_tabs(page):
 def format_object(object):
     data = object[1]
     main = data[3]
+    # NOTE: this seems to change. hacky way to get the info
     info = data[9]
     if info is None:
         info = data[11]
+    if info is None:
+        info = data[22]
     formatted_object = {}
     try:
         formatted_object['image_height'] = main[2]
