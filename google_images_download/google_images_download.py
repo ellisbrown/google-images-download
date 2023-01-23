@@ -282,10 +282,12 @@ def format_object(object):
     main = data[3]
     # NOTE: this seems to change. hacky way to get the info
     info = data[9]
-    if info is None:
+    if not info:
         info = data[11]
-    if info is None:
+    if not info:
         info = data[22]
+    if not info:
+        info = data[23]
     formatted_object = {}
     try:
         formatted_object['image_height'] = main[2]
