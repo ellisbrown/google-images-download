@@ -288,6 +288,8 @@ def format_object(object):
         info = data[22]
     if not info:
         info = data[23]
+    if not info:
+        info = data[25]
     formatted_object = {}
     try:
         formatted_object['image_height'] = main[2]
