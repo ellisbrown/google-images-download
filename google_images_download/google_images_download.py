@@ -39,20 +39,17 @@ import re
 import codecs
 import socket
 
-args_list = ["keywords", "keywords_from_file", "prefix_keywords", "suffix_keywords",
-             "limit", "format", "color", "color_type", "usage_rights", "size",
-             "exact_size", "aspect_ratio", "type", "time", "time_range", "delay", "url", "single_image",
-             "output_directory", "image_directory", "no_directory", "proxy", "similar_images", "specific_site",
-             "print_urls", "print_size", "print_paths", "metadata", "extract_metadata", "socket_timeout",
-             "thumbnail", "thumbnail_only", "language", "prefix", "chromedriver", "browser", "related_images", "safe_search",
-             "no_numbering",
-             "offset", "no_download", "save_source", "silent_mode", "ignore_urls"]
+HEADERS = {
+    'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/116.0.0.0 Safari/537.36',
+    'Accept-Language': 'en-US, en;q=0.5'
+}
+
 
 
 def _extract_data_pack(page):
     start_line = page.find("AF_initDataCallback({key: \\'ds:1\\'") - 10
     start_object = page.find('[', start_line + 1)
-    end_object = page.rfind(']',0,page.find('</script>', start_object + 1))+1
+    end_object = page.rfind(']', 0, page.find('</script>', start_object + 1))+1
     object_raw = str(page[start_object:end_object])
     return bytes(object_raw, "utf-8").decode("unicode_escape")
 
@@ -60,7 +57,7 @@ def _extract_data_pack(page):
 def _extract_data_pack_extended(page):
     start_line = page.find("AF_initDataCallback({key: 'ds:1'") - 10
     start_object = page.find('[', start_line + 1)
-    end_object = page.rfind(']',0,page.find('</script>', start_object + 1)) + 1
+    end_object = page.rfind(']', 0, page.find('</script>', start_object + 1)) + 1
     return str(page[start_object:end_object])
 
 
@@ -189,17 +186,17 @@ def download_extended_page(url, chromedriver, browser):
 
     element = browser.find_element(By.TAG_NAME, "body")
     # Scroll down
-    for i in range(50):
+    for _ in range(50):
         element.send_keys(Keys.PAGE_DOWN)
         time.sleep(0.3)
 
     try:
         browser.find_element(By.XPATH, '//input[@value="Show more results"]').click()
-        for i in range(50):
+        for _ in range(50):
             element.send_keys(Keys.PAGE_DOWN)
             time.sleep(0.3)  # bot id protection
-    except:
-        for i in range(10):
+    except Exception as e:
+        for _ in range(10):
             element.send_keys(Keys.PAGE_DOWN)
             time.sleep(0.3)  # bot id protection
 
@@ -209,7 +206,7 @@ def download_extended_page(url, chromedriver, browser):
     source = browser.page_source  # page source
     images = _image_objects_from_pack(_extract_data_pack_extended(source))
 
-    ajax_data = browser.execute_script("return XMLHttpRequest.prototype._data") # I think this is broken
+    ajax_data = browser.execute_script("return XMLHttpRequest.prototype._data")  # I think this is broken
     for chunk in ajax_data if ajax_data else []:
         images += _image_objects_from_pack(_extract_data_pack_ajax(chunk))
 
@@ -317,8 +314,7 @@ def single_image(image_url):
         if e.errno != 17:
             raise
         pass
-    req = Request(url, headers={
-        "User-Agent": "Mozilla/5.0 (X11; Linux i686) AppleWebKit/537.17 (KHTML, like Gecko) Chrome/24.0.1312.27 Safari/537.17"})
+    req = Request(url, headers=HEADERS)
 
     response = urlopen(req, None, 10)
     data = response.read()
@@ -356,28 +352,15 @@ def similar_images(similar_images):
             headers[
                 'User-Agent'] = "Mozilla/5.0 (Windows NT 6.1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/41.0.2228.0 Safari/537.36"
 
-            req1 = urllib.request.Request(searchUrl, headers=headers)
+            req1 = urllib.request.Request(searchUrl, headers=HEADERS)
             resp1 = urllib.request.urlopen(req1)
             content = str(resp1.read())
             l1 = content.find('AMhZZ')
             l2 = content.find('&', l1)
             urll = content[l1:l2]
 
-            newurl = "https://www.google.com/search?tbs=sbi:" + urll + "&site=search&sa=X"
-            req2 = urllib.request.Request(newurl, headers=headers)
-            resp2 = urllib.request.urlopen(req2)
-            l3 = content.find('/search?sa=X&amp;q=')
-            l4 = content.find(';', l3 + 19)
-            urll2 = content[l3 + 19:l4]
-            return urll2
-        except:
-            return "Cloud not connect to Google Images endpoint"
-    else:  # If the Current Version of Python is 2.x
-        try:
-            searchUrl = 'https://www.google.com/searchbyimage?site=search&sa=X&image_url=' + similar_images
-            headers = {}
-            headers[
-                'User-Agent'] = "Mozilla/5.0 (X11; Linux i686) AppleWebKit/537.17 (KHTML, like Gecko) Chrome/24.0.1312.27 Safari/537.17"
+            req2 = urllib.request.Request(newurl, headers=HEADERS)
+        resp2 = urllib.request.urlopen(req2)
 
             req1 = urllib2.Request(searchUrl, headers=headers)
             resp1 = urllib2.urlopen(req1)
@@ -561,8 +544,7 @@ def download_image_thumbnail(image_url, main_directory, dir_name, return_image_n
     if no_download:
         return "success", "Printed url without downloading"
     try:
-        req = Request(image_url, headers={
-            "User-Agent": "Mozilla/5.0 (X11; Linux i686) AppleWebKit/537.17 (KHTML, like Gecko) Chrome/24.0.1312.27 Safari/537.17"})
+        req = Request(image_url, headers=HEADERS)
         try:
             # timeout time to download an image
             if socket_timeout:
@@ -636,8 +618,7 @@ def download_image(image_url, image_format, main_directory, dir_name, count, pri
     if no_download:
         return "success", "Printed url without downloading", None, image_url
     try:
-        req = Request(image_url, headers={
-            "User-Agent": "Mozilla/5.0 (X11; Linux i686) AppleWebKit/537.17 (KHTML, like Gecko) Chrome/24.0.1312.27 Safari/537.17"})
+        req = Request(image_url, headers=HEADERS)
         try:
             # timeout time to download an image
             if socket_timeout:
