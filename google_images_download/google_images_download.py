@@ -9,26 +9,13 @@ import sys
 import selenium.common.exceptions
 from selenium.webdriver.common.by import By
 
-version = (3, 0)
-cur_version = sys.version_info
-if cur_version >= version:  # If the Current Version of Python is 3.0 or above
-    import urllib.request
-    from urllib.request import Request, urlopen
-    from urllib.request import URLError, HTTPError
-    from urllib.parse import quote
-    import http.client
-    from http.client import IncompleteRead, BadStatusLine
+import urllib.request
+from urllib.request import Request, urlopen
+from urllib.request import URLError, HTTPError
+from urllib.parse import quote
+import http.client
+from http.client import IncompleteRead, BadStatusLine
 
-    http.client._MAXHEADERS = 1000
-else:  # If the Current Version of Python is 2.x
-    import urllib2
-    from urllib2 import Request, urlopen
-    from urllib2 import URLError, HTTPError
-    from urllib import quote
-    import httplib
-    from httplib import IncompleteRead, BadStatusLine
-
-    httplib._MAXHEADERS = 1000
 import time  # Importing the time library to check the time of code execution
 import os
 import argparse
@@ -39,11 +26,24 @@ import re
 import codecs
 import socket
 
+http.client._MAXHEADERS = 1000
+
 HEADERS = {
     'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/116.0.0.0 Safari/537.36',
     'Accept-Language': 'en-US, en;q=0.5'
 }
 
+args_list = [
+    "keywords", "keywords_from_file", "prefix_keywords", "suffix_keywords",
+    "limit", "format", "color", "color_type", "usage_rights", "size",
+    "exact_size", "aspect_ratio", "type", "time", "time_range", "delay", "url",
+    "single_image", "output_directory", "image_directory", "no_directory",
+    "proxy", "similar_images", "specific_site", "print_urls", "print_size",
+    "print_paths", "metadata", "extract_metadata", "socket_timeout",
+    "thumbnail", "thumbnail_only", "language", "prefix", "chromedriver",
+    "browser", "related_images", "safe_search", "no_numbering", "offset",
+    "no_download", "save_source", "silent_mode", "ignore_urls", "alt_text",
+]
 
 
 def _extract_data_pack(page):
@@ -84,34 +84,15 @@ def _image_objects_from_pack(data):
 
 # Downloading entire Web Document (Raw Page Content)
 def download_page(url):
-    version = (3, 0)
-    cur_version = sys.version_info
-    headers = {}
-    headers[
-        'User-Agent'] = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/88.0.4324.104 Safari/537.36"
-    if cur_version >= version:  # If the Current Version of Python is 3.0 or above
-        try:
-            req = urllib.request.Request(url, headers=headers)
-            resp = urllib.request.urlopen(req)
-            respData = str(resp.read())
-        except:
-            print("Could not open URL. Please check your internet connection and/or ssl settings \n"
-                    "If you are using proxy, make sure your proxy settings is configured correctly")
-            sys.exit()
-    else:  # If the Current Version of Python is 2.x
-        try:
-            req = urllib2.Request(url, headers=headers)
-            try:
-                response = urllib2.urlopen(req)
-            except URLError:  # Handling SSL certificate failed
-                context = ssl._create_unverified_context()
-                response = urlopen(req, context=context)
-            respData = response.read()
-        except:
-            print("Could not open URL. Please check your internet connection and/or ssl settings \n"
-                    "If you are using proxy, make sure your proxy settings is configured correctly")
-            sys.exit()
-            return "Page Not found"
+    try:
+        req = urllib.request.Request(url, headers=HEADERS)
+        resp = urllib.request.urlopen(req)
+        respData = str(resp.read())
+    except Exception as e:
+        print("Could not open URL. Please check your internet connection and/or ssl settings \n"
+              "If you are using proxy, make sure your proxy settings is configured correctly")
+        print(e)
+        sys.exit()
     try:
         return _image_objects_from_pack(_extract_data_pack(respData)), get_all_tabs(respData)
     except Exception as e:
@@ -124,9 +105,6 @@ def download_page(url):
 def download_extended_page(url, chromedriver, browser):
     from selenium import webdriver
     from selenium.webdriver.common.keys import Keys
-    if sys.version_info[0] < 3:
-        reload(sys)
-        sys.setdefaultencoding('utf8')
     options = webdriver.ChromeOptions()
     options.add_argument('--no-sandbox')
     options.add_argument("--headless")
@@ -343,41 +321,25 @@ def single_image(image_url):
 
 
 def similar_images(similar_images):
-    version = (3, 0)
-    cur_version = sys.version_info
-    if cur_version >= version:  # If the Current Version of Python is 3.0 or above
-        try:
-            searchUrl = 'https://www.google.com/searchbyimage?site=search&sa=X&image_url=' + similar_images
-            headers = {}
-            headers[
-                'User-Agent'] = "Mozilla/5.0 (Windows NT 6.1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/41.0.2228.0 Safari/537.36"
+    try:
+        searchUrl = 'https://www.google.com/searchbyimage?site=search&sa=X&image_url=' + similar_images
 
-            req1 = urllib.request.Request(searchUrl, headers=HEADERS)
-            resp1 = urllib.request.urlopen(req1)
-            content = str(resp1.read())
-            l1 = content.find('AMhZZ')
-            l2 = content.find('&', l1)
-            urll = content[l1:l2]
+        req1 = urllib.request.Request(searchUrl, headers=HEADERS)
+        resp1 = urllib.request.urlopen(req1)
+        content = str(resp1.read())
+        l1 = content.find('AMhZZ')
+        l2 = content.find('&', l1)
+        urll = content[l1:l2]
 
+        newurl = "https://www.google.com/search?tbs=sbi:" + urll + "&site=search&sa=X"
             req2 = urllib.request.Request(newurl, headers=HEADERS)
         resp2 = urllib.request.urlopen(req2)
-
-            req1 = urllib2.Request(searchUrl, headers=headers)
-            resp1 = urllib2.urlopen(req1)
-            content = str(resp1.read())
-            l1 = content.find('AMhZZ')
-            l2 = content.find('&', l1)
-            urll = content[l1:l2]
-
-            newurl = "https://www.google.com/search?tbs=sbi:" + urll + "&site=search&sa=X"
-            req2 = urllib2.Request(newurl, headers=headers)
-            resp2 = urllib2.urlopen(req2)
-            l3 = content.find('/search?sa=X&amp;q=')
-            l4 = content.find(';', l3 + 19)
-            urll2 = content[l3 + 19:l4]
-            return (urll2)
-        except:
-            return "Cloud not connect to Google Images endpoint"
+        l3 = content.find('/search?sa=X&amp;q=')
+        l4 = content.find(';', l3 + 19)
+        urll2 = content[l3 + 19:l4]
+        return urll2
+    except:
+        return "Cloud not connect to Google Images endpoint"
 
 
 # Building URL parameters
@@ -754,6 +716,64 @@ def download_image(image_url, image_format, main_directory, dir_name, count, pri
     return download_status, download_message, return_image_name, absolute_path
 
 
+# Download Alt-Text from Image Source URL
+def download_alt_text(image_url, image_source, socket_timeout):
+    # TODO: refactor lib to use requests instead of urllib?
+    
+    import requests
+    from bs4 import BeautifulSoup
+    
+    timeout = 10 if socket_timeout is None else float(socket_timeout)
+
+    try:
+        # Step 1: Make an HTTP request to the webpage
+        response = requests.get(image_source, headers=HEADERS, timeout=timeout)
+        response.raise_for_status()  # Check for HTTP errors
+
+        # Step 2: Parse the HTML content of the webpage
+        soup = BeautifulSoup(response.text, 'html.parser')
+
+        # Step 3: Find the img tag with the specified image URL
+        img_tag = soup.find('img', src=image_url)
+
+        if not img_tag:
+            # try to match the filename of the image
+            fname = os.path.basename(image_url)
+
+            # etsy accepts a transformation parameter in the image url
+            # "<num>.il_<width>xN.<numbers>.<extension>"
+            if "etsystatic.com" in image_url:
+                fname = "xN." + "".join(fname.split("xN.")[-1:])
+
+            # if the image has options, remove them
+            fname = fname.split("?")[0]
+
+            imgs = [
+                tag for tag in soup.find_all('img')
+                if fname in str(tag)
+                and tag.get('alt')
+            ]
+            if imgs:
+                img_tag = imgs[0]
+
+        if img_tag:
+            # Step 4: Extract the alt text if it exists
+            alt_text = img_tag.get('alt', '')
+            return alt_text.strip()
+
+
+        print("Image not found on the page.")
+        return ""
+
+    except requests.exceptions.RequestException as e:
+        print(f"Error: {str(e)}")
+        return ""
+
+    except Exception as e:
+        print(f"Error: {str(e)}")
+        return ""
+
+
 def _get_all_items(image_objects, main_directory, dir_name, limit, arguments):
     items = []
     abs_path = []
@@ -800,6 +820,14 @@ def _get_all_items(image_objects, main_directory, dir_name, limit, arguments):
 
                 count += 1
                 object['image_filename'] = return_image_name
+
+                # TODO: download alt-text if requested
+                if arguments['alt_text']:
+                    image_link = object['image_link']
+                    image_source = object['image_source']
+                    alt_text = download_alt_text(image_link, image_source, arguments['socket_timeout'])
+                    object['alt_text'] = alt_text
+
                 items.append(object)  # Append all the links in the list named 'Links'
                 abs_path.append(absolute_path)
             else:
@@ -1152,6 +1180,8 @@ def user_input():
         parser.add_argument('-is', '--save_source',
                             help="creates a text file containing a list of downloaded images along with source page url",
                             type=str, required=False)
+        parser.add_argument('-at', '--alt_text', default=False,
+                            help="Downloads alt-text from the page source", action="store_true")
 
         args = parser.parse_args()
         arguments = vars(args)
