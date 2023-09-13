@@ -332,13 +332,14 @@ def similar_images(similar_images):
         urll = content[l1:l2]
 
         newurl = "https://www.google.com/search?tbs=sbi:" + urll + "&site=search&sa=X"
-            req2 = urllib.request.Request(newurl, headers=HEADERS)
+        req2 = urllib.request.Request(newurl, headers=HEADERS)
         resp2 = urllib.request.urlopen(req2)
         l3 = content.find('/search?sa=X&amp;q=')
         l4 = content.find(';', l3 + 19)
         urll2 = content[l3 + 19:l4]
         return urll2
-    except:
+    except Exception as e:
+        print(e)
         return "Cloud not connect to Google Images endpoint"
 
 
